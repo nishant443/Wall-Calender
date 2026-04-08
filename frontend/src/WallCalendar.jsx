@@ -302,6 +302,7 @@ const NotesPanel = memo(function NotesPanel({
 
   const rangeKey  = getRangeKey(startDate, effectiveEnd);
   const rangeNote = rangeKey ? (dayNotes[rangeKey] || "") : "";
+  const isSingleDay = startDate && effectiveEnd && isSameDay(startDate, effectiveEnd);
 
   const handleRangeNote = useCallback((val) => {
     if (!rangeKey) return;
@@ -320,14 +321,14 @@ const NotesPanel = memo(function NotesPanel({
     <div className="notes-panel">
       {/* Tabs */}
       <div className="notes-tabs">
-        {["month", "range"].map(tab => (
+        {["month", "date"].map(tab => (
           <button
             key={tab}
             className="notes-tab"
             style={tabStyle(tab)}
             onClick={() => setActiveTab(tab)}
           >
-            {tab === "month" ? "📝 Month" : "📌 Range"}
+            {tab === "month" ? "📝 Month" : "📅 Date"}
           </button>
         ))}
       </div>
@@ -349,32 +350,36 @@ const NotesPanel = memo(function NotesPanel({
           </>
         ) : rangeKey ? (
           <>
-            <div className="range-pill" style={{ color: theme.accent }}>📅 {rangeKey}</div>
+            <div className="range-pill" style={{ color: theme.accent }}>
+              {isSingleDay ? "📌 " : "📅 "}
+              {rangeKey}
+            </div>
             <textarea
               className="notes-textarea"
               style={{ ...textareaStyle, minHeight: 100 }}
               value={rangeNote}
               onChange={e => handleRangeNote(e.target.value)}
-              placeholder="Add notes for this date range…"
+              placeholder={isSingleDay ? "Add notes for this date…" : "Add notes for this date range…"}
               onFocus={e  => { e.target.style.borderColor = theme.accent + "88"; }}
               onBlur={e   => { e.target.style.borderColor = theme.accent + "33"; }}
             />
+            {rangeNote && <div className="notes-hint" style={{ color: theme.accent + "aa", marginTop: 8 }}>✓ Notes saved</div>}
           </>
         ) : (
           <div className="empty-range">
             <div className="empty-range-icon">🖱️</div>
-            <div className="empty-range-text">Select a date range on the calendar to add notes</div>
+            <div className="empty-range-text">Select a date on the calendar to add notes</div>
           </div>
         )}
       </div>
 
-      {/* Saved range notes */}
+      {/* Saved date notes */}
       {Object.keys(dayNotes).length > 0 && (
         <div className="saved-notes">
-          <div className="saved-notes-title">SAVED RANGE NOTES</div>
+          <div className="saved-notes-title">SAVED NOTES</div>
           {Object.entries(dayNotes).filter(([, v]) => v).map(([k, v]) => (
-            <div key={k}>
-              <div className="saved-note-key" style={{ color: theme.accent }}>{k}</div>
+            <div key={k} style={{ marginBottom: 8, paddingBottom: 8, borderBottom: `1px solid ${theme.accent}22` }}>
+              <div className="saved-note-key" style={{ color: theme.accent, fontSize: 10 }}>📌 {k}</div>
               <div className="saved-note-val">{v.slice(0, 60)}{v.length > 60 ? "…" : ""}</div>
             </div>
           ))}
@@ -402,6 +407,39 @@ export default function WallCalendar() {
   const daysInMonth  = getDaysInMonth(year, month);
   const firstDay     = getFirstDayOfMonth(year, month);
   const rangeKey     = getRangeKey(startDate, effectiveEnd);
+
+  // ─── localStorage persistence ─────────────────────────────────────────────
+  // Load notes from localStorage on mount and month change
+  useEffect(() => {
+    const monthNotesKey = `cal-notes-${year}-${month}`;
+    const dayNotesKey = `cal-dayNotes-${year}-${month}`;
+    
+    const savedMonthNotes = localStorage.getItem(monthNotesKey);
+    const savedDayNotes = localStorage.getItem(dayNotesKey);
+    
+    if (savedMonthNotes) setNotes(savedMonthNotes);
+    if (savedDayNotes) setDayNotes(JSON.parse(savedDayNotes));
+  }, [year, month]);
+
+  // Save month notes to localStorage
+  useEffect(() => {
+    const monthNotesKey = `cal-notes-${year}-${month}`;
+    if (notes) {
+      localStorage.setItem(monthNotesKey, notes);
+    } else {
+      localStorage.removeItem(monthNotesKey);
+    }
+  }, [notes, year, month]);
+
+  // Save day notes to localStorage
+  useEffect(() => {
+    const dayNotesKey = `cal-dayNotes-${year}-${month}`;
+    if (Object.keys(dayNotes).length > 0) {
+      localStorage.setItem(dayNotesKey, JSON.stringify(dayNotes));
+    } else {
+      localStorage.removeItem(dayNotesKey);
+    }
+  }, [dayNotes, year, month]);
 
   // Sync CSS custom property for accent (used by clear-btn hover)
   useEffect(() => {
