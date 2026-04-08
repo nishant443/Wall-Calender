@@ -1,3 +1,472 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #0d0d14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes flipIn {
+  from { transform: rotateX(-90deg) translateY(-20px); opacity: 0; }
+  to   { transform: rotateX(0deg)   translateY(0);     opacity: 1; }
+}
+@keyframes flipOut {
+  from { transform: rotateX(0deg);              opacity: 1; }
+  to   { transform: rotateX(90deg) translateY(20px); opacity: 0; }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+/* ── Layout ── */
+.cal-card {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.cal-body {
+  display: flex;
+  gap: 0;
+}
+.cal-main {
+  flex: 1;
+  padding: clamp(16px, 3vw, 28px);
+}
+.cal-notes-col {
+  width: clamp(220px, 30%, 280px);
+  min-width: 220px;
+  padding: clamp(16px, 3vw, 28px);
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cal-footer {
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cal-footer-hint {
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── Hero ── */
+.hero-panel {
+  position: relative;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px 24px;
+  cursor: pointer;
+  user-select: none;
+}
+.hero-rings {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 40px;
+}
+.hero-ring {
+  width: 28px; height: 32px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 0 0 14px 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top: none;
+  backdrop-filter: blur(4px);
+}
+.hero-icon {
+  font-size: 72px;
+  line-height: 1;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  animation: float 3s ease-in-out infinite;
+  transition: all 0.4s ease;
+  position: relative;
+  z-index: 1;
+}
+.hero-month-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+.hero-mood {
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 16px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+.hero-line {
+  position: absolute;
+  bottom: 0; left: 10%; right: 10%;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* ── Info overlay ── */
+.info-overlay {
+  padding: 20px 28px;
+  animation: fadeSlideUp 0.3s ease;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.info-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.info-meta {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+}
+.info-range-pill {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+}
+
+/* ── Navigation ── */
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.nav-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s;
+  user-select: none;
+}
+.nav-btn:hover {
+  background: rgba(255,255,255,0.18);
+  transform: scale(1.1);
+}
+.nav-title {
+  text-align: center;
+}
+.nav-month-label {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(16px, 3vw, 22px);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.nav-count {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  margin-top: 2px;
+  animation: pulse 2s infinite;
+}
+
+/* ── Day grid ── */
+.day-headers {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+.day-header {
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(9px, 1.5vw, 11px);
+  letter-spacing: 0.08em;
+  padding: 4px 0;
+  font-weight: 500;
+}
+.calendar-wrapper {
+  perspective: 800px;
+}
+.calendar-wrapper.flipping {
+  animation: flipOut 0.3s ease forwards;
+}
+.calendar-wrapper.entering {
+  animation: flipIn 0.4s ease both;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  animation: fadeSlideUp 0.4s ease both;
+}
+
+/* ── Day cell ── */
+.day-cell {
+  position: relative;
+  height: clamp(36px, 7vw, 52px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+  border-radius: 12px;
+}
+.day-cell:hover { transform: scale(1.08); }
+.day-cell.empty { cursor: default; pointer-events: none; }
+.day-cell.selected-start { border-radius: 12px 0 0 12px !important; }
+.day-cell.selected-end   { border-radius: 0 12px 12px 0 !important; }
+.day-cell.in-range       { border-radius: 0 !important; }
+.day-cell.today-cell .today-ring {
+  position: absolute;
+  inset: 4px;
+  border-radius: 8px;
+  border-width: 2px;
+  border-style: solid;
+  opacity: 0.7;
+}
+.day-number {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: clamp(11px, 2vw, 15px);
+  line-height: 1;
+  z-index: 1;
+}
+.day-dot {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 4px;
+  border-radius: 50%;
+}
+
+/* ── Legend ── */
+.legend {
+  margin-top: 16px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  font-family: 'DM Mono', monospace;
+}
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Holiday box ── */
+.holiday-box {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(255,215,0,0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(255,215,0,0.15);
+}
+.holiday-row {
+  font-size: 11px;
+  color: rgba(255,215,0,0.7);
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── Notes panel ── */
+.notes-panel {
+  background: rgba(255,255,255,0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.notes-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.notes-tab {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+.notes-body {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.notes-hint {
+  font-family: 'Crimson Text', Georgia, serif;
+  color: rgba(255,255,255,0.4);
+  font-size: 12px;
+  font-style: italic;
+}
+.notes-textarea {
+  flex: 1;
+  min-height: 120px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #fff;
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.7;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.range-pill {
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+.empty-range {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  color: rgba(255,255,255,0.25);
+  text-align: center;
+}
+.empty-range-icon { font-size: 32px; }
+.empty-range-text {
+  font-family: 'Crimson Text', serif;
+  font-size: 14px;
+  font-style: italic;
+}
+.saved-notes {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 16px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.saved-notes-title {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.3);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 6px;
+}
+.saved-note-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+.saved-note-val {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+
+/* ── Notes label ── */
+.notes-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ── Clear button ── */
+.clear-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.4);
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: all 0.2s;
+}
+.clear-btn:hover {
+  color: var(--accent-color, #7ee8fa);
+  border-color: var(--accent-color, #7ee8fa);
+}
+
+/* ── Canvas ── */
+.particle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .cal-body { flex-direction: column !important; }
+  .cal-notes-col { width: 100% !important; min-width: unset !important; padding-left: clamp(16px, 3vw, 28px) !important; }
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
